@@ -1,10 +1,11 @@
 import os
+from calculations import Calculations
 
 from parameters import Parameters
 from state import State
 
 
-def write_positions(filename, particle_positions):
+def write_numbers(filename, numbers):
 
     def map_str(sequence):
         result = []
@@ -18,7 +19,7 @@ def write_positions(filename, particle_positions):
         if not first_written_line:
             frames.write("\n")
 
-        frames.write("\t".join(map_str(particle_positions)))
+        frames.write("\t".join(map_str(numbers)))
 
 
 def main():
@@ -26,16 +27,37 @@ def main():
 
     for _ in range(parameters.simulations()):
 
+        calculations = Calculations(parameters)
         state = State.from_file("input_initState.json", parameters)
 
         for _ in range(parameters.simulation_frames()):
 
             filename = f"frames{parameters.simulation()}.txt"
-            write_positions(filename, state.positions)
+            write_numbers(filename, state.positions)
+
+            calculations.register_displacements_and_velocities(
+                state.current_displacements(),
+                state.current_velocities(),
+                state.current_time()
+            )
 
             state.update()
 
             parameters.next_frame()
+
+        total, kinetic, potential = calculations.calc_E()
+
+        if parameters.analitic_frequency != None:
+            omega_approx = calculations.mean_frequency()
+
+            if omega_approx == None:
+                print(f"T_avg = 0 for dt = {parameters.dt()}")
+
+            write_numbers("frequencies.txt", [
+                parameters.analitic_frequency,
+                omega_approx,
+                (parameters.analitic_frequency - omega_approx) / parameters.analitic_frequency
+            ])
 
         parameters.next_simulation()
 

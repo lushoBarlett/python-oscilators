@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 
 
@@ -17,6 +18,8 @@ class State:
         self.displacements = []
         self.mid_velocities = []
         self.accelerations = []
+
+        self.elapsed_time = 0
 
         for _ in range(self.parameters.oscilator_amount):
             self.displacements.append(0)
@@ -80,3 +83,13 @@ class State:
             self.velocities[i] = self.velocity(i)
             self.positions[i] = self.position(i)
             self.displacements[i] = self.displacement(i)
+            self.elapsed_time += self.parameters.dt()
+
+    def current_displacements(self):
+        return deepcopy(self.displacements)
+
+    def current_velocities(self):
+        return deepcopy(self.velocities)
+
+    def current_time(self):
+        return self.elapsed_time
