@@ -74,7 +74,7 @@ class State:
         return self.positions[i] + self.mid_velocities[i] * self.parameters.dt()
 
     def displacement(self, i):
-        return self.positions[i] - i * self.parameters.length_rest
+        return self.positions[i] - i * self.parameters.rest_length
 
     def update(self):
         for i in range(self.parameters.oscilator_amount):

@@ -1,6 +1,4 @@
-from dis import dis
-import math
-from statistics import median_grouped
+from math import pi, sqrt
 from scipy import signal
 
 
@@ -82,4 +80,31 @@ class Calculations:
         if mean_period == 0:
             return None
 
-        return 2 * math.pi / mean_period
+        return 2 * pi / mean_period
+
+    def calc_wave_vel(self):
+        last_oscilator_velocities = []
+
+        for velocities in self.v:
+            last_oscilator_velocity = velocities[len(velocities) - 1]
+            last_oscilator_velocities.append(last_oscilator_velocity)
+
+        time_of_movement = 0
+        for t, v in zip(self.t, velocities):
+            time_of_movement = t
+            if v > 0:
+                break
+
+        spring_amount = self.parameters.oscilator_amount - 1
+        length_of_rest = self.parameters.rest_length * spring_amount
+
+        return length_of_rest / time_of_movement
+
+    def calc_wave_vel_analitic(self):
+        k = self.parameters.spring_constant
+        m = self.parameters.oscilator_mass
+        l = self.parameters.rest_length
+        return sqrt(k / m) * l
+
+    def relative_error(real, approx):
+        return abs(real - approx) / real

@@ -19,7 +19,7 @@ class Parameters:
             self.frame_amounts.append(frame_amounts)
             self.dts.append(dt)
 
-        self.length_rest = params["l_rest"]
+        self.rest_length = params["l_rest"]
         self.spring_constant = params["k"]
         self.analitic_frequency = params["omega"]
 

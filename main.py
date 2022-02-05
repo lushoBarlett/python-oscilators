@@ -1,3 +1,4 @@
+from cmath import sqrt
 import os
 from calculations import Calculations
 
@@ -56,8 +57,23 @@ def main():
             write_numbers("frequencies.txt", [
                 parameters.analitic_frequency,
                 omega_approx,
-                (parameters.analitic_frequency - omega_approx) / parameters.analitic_frequency
+                Calculations.relative_error(
+                    parameters.analitic_frequency,
+                    omega_approx
+                )
             ])
+
+        wave_velocity_approx = calculations.calc_wave_vel()
+        wave_velocity_analitic = calculations.calc_wave_vel_analitic()
+
+        write_numbers("v_wave.txt", [
+            wave_velocity_analitic,
+            wave_velocity_approx,
+            Calculations.relative_error(
+                wave_velocity_analitic,
+                wave_velocity_approx
+            )
+        ])
 
         parameters.next_simulation()
 
