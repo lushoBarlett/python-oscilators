@@ -7,10 +7,10 @@ from state import State
 def write_positions(filename, particle_positions):
 
     def map_str(sequence):
-        for i in range(len(sequence)):
-            sequence[i] = str(sequence[i])
-
-    map_str(particle_positions)
+        result = []
+        for element in sequence:
+            result.append(str(element))
+        return result
 
     first_written_line = not os.path.exists(filename)
 
@@ -18,16 +18,26 @@ def write_positions(filename, particle_positions):
         if not first_written_line:
             frames.write("\n")
 
-        frames.write("\t".join(particle_positions))
+        frames.write("\t".join(map_str(particle_positions)))
 
 
 def main():
     parameters = Parameters.from_file("input_parameters.json")
-    state = State.from_file("input_initState.json")
 
-    for simulation, (frames, dt) in enumerate(parameters.simulations, 1):
-        for _ in range(frames):
-            write_positions(f"frames{simulation}.txt", state.positions)
+    for _ in range(parameters.simulations()):
+
+        state = State.from_file("input_initState.json", parameters)
+
+        for _ in range(parameters.simulation_frames()):
+
+            filename = f"frames{parameters.simulation()}.txt"
+            write_positions(filename, state.positions)
+
+            state.update()
+
+            parameters.next_frame()
+
+        parameters.next_simulation()
 
 
 if __name__ == "__main__":
