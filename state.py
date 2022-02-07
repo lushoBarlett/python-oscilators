@@ -43,19 +43,19 @@ class State:
         return -k * (self.displacements[i] - self.displacements[i + 1])
 
     def update(self):
-        dt = self.parameters.dt()
+        dt = self.parameters.dts[self.parameters.current_simulation - 1]
 
         for i in range(self.parameters.oscilator_amount):
             self.accelerations[i] = (self.left_force(i) + self.right_force(i)) / self.parameters.oscilator_mass
 
-            if self.parameters.frame() == 1:
+            if self.parameters.current_frame == 1:
                 self.mid_velocities[i] = self.velocities[i] + self.accelerations[i] * dt / 2
             else:
                 self.mid_velocities[i] += + self.accelerations[i] * dt
 
             self.velocities[i] = self.mid_velocities[i] - self.accelerations[i] * dt / 2
 
-            self.positions[i] += self.mid_velocities[i] * self.parameters.dt()
+            self.positions[i] += self.mid_velocities[i] * dt
 
             self.displacements[i] = self.positions[i] - i * self.parameters.rest_length
 

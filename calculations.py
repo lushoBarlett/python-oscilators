@@ -58,7 +58,7 @@ class Calculations:
         middle_oscilator_displacements = []
 
         for displacements in self.dx:
-            middle = self.parameters.middle_index()
+            middle = int(self.parameters.oscilator_amount / 2)
             middle_oscilator_displacements.append(displacements[middle])
 
         indices, _ = signal.find_peaks(middle_oscilator_displacements)

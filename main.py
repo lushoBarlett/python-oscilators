@@ -51,15 +51,15 @@ def read_frequency_relative_errors(filename):
 def main():
     parameters = parameters_from_file("input_parameters.json")
 
-    for _ in range(parameters.simulations()):
+    for _ in parameters.frame_amounts:
 
         calculations = Calculations(parameters)
         plot = Plot()
         state = state_from_file("input_initState.json", parameters)
 
-        for _ in range(parameters.simulation_frames()):
+        for _ in range(parameters.frame_amounts[parameters.current_simulation - 1]):
 
-            filename = f"frames{parameters.simulation()}.txt"
+            filename = f"frames{parameters.current_simulation}.txt"
             write_numbers(filename, state.positions)
 
             current_displacements = state.current_displacements()
@@ -73,7 +73,7 @@ def main():
                 current_time
             )
 
-            middle = parameters.middle_index()
+            middle = int(parameters.oscilator_amount / 2)
 
             plot.register_oscilator_state(
                 current_displacements[middle],
@@ -84,7 +84,7 @@ def main():
 
             state.update()
 
-            parameters.next_frame()
+            parameters.current_frame += 1
 
         total, kinetic, potential = calculations.calc_E()
 
@@ -92,7 +92,7 @@ def main():
             omega_approx = calculations.mean_frequency()
 
             if omega_approx == None:
-                print(f"T_avg = 0 for dt = {parameters.dt()}")
+                print(f"T_avg = 0 for dt = {parameters.dts[parameters.current_simulation - 1]}")
 
             write_numbers("frequencies.txt", [
                 parameters.analitic_frequency,
@@ -122,7 +122,8 @@ def main():
 
         plot.energy("Energy.png")
 
-        parameters.next_simulation()
+        parameters.current_simulation += 1
+        parameters.current_frame = 1
 
     if parameters.analitic_frequency != None:
         relative_errors = read_frequency_relative_errors("frequencies.txt")
