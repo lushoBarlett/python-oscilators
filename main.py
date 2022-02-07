@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 from math import pi, sqrt
 import os
@@ -192,14 +193,13 @@ def main():
             filename = f"frames{params['simulation']}.txt"
             write_numbers(filename, state.positions)
 
-            current_displacements = state.current_displacements()
-            current_velocities = state.current_velocities()
-            current_accelerations = state.current_accelerations()
-            current_time = state.current_time()
+            current_displacements = deepcopy(state.displacements)
+            current_velocities = deepcopy(state.velocities)
+            current_accelerations = deepcopy(state.accelerations)
 
             displacements_list.append(current_displacements)
             velocities_list.append(current_velocities)
-            times.append(current_time)
+            times.append(state.elapsed_time)
 
             middle = int(params['osc_num'] / 2)
 

@@ -60,15 +60,3 @@ class State:
             self.displacements[i] = self.positions[i] - i * self.params['l_rest']
 
             self.elapsed_time += dt
-
-    def current_displacements(self):
-        return deepcopy(self.displacements)
-
-    def current_velocities(self):
-        return deepcopy(self.velocities)
-
-    def current_accelerations(self):
-        return deepcopy(self.accelerations)
-
-    def current_time(self):
-        return self.elapsed_time
