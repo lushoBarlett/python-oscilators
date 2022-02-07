@@ -5,16 +5,16 @@ from calculations import Calculations
 from plot import Plot
 from state import State
 
-def parameters_from_file(filename):
-    with open(filename, "r") as parameters:
-        unparsed_parameters = parameters.read()
-        return json.loads(unparsed_parameters)
+def params_from_file(filename):
+    with open(filename, "r") as params:
+        unparsed_params = params.read()
+        return json.loads(unparsed_params)
 
-def state_from_file(filename, parameters):
+def state_from_file(filename, params):
     with open(filename, "r") as state:
         unparsed_state = state.read()
         parsed_state = json.loads(unparsed_state)
-        return State(parsed_state, parameters)
+        return State(parsed_state, params)
 
 def write_numbers(filename, numbers):
 
@@ -47,19 +47,19 @@ def read_frequency_relative_errors(filename):
     return relative_errors
 
 def main():
-    parameters = parameters_from_file("input_parameters.json")
-    parameters['simulation'] = 1
-    parameters['frame'] = 1
+    params = params_from_file("input_params.json")
+    params['simulation'] = 1
+    params['frame'] = 1
 
-    for _ in parameters['frames_num']:
+    for _ in params['frames_num']:
 
-        calculations = Calculations(parameters)
+        calculations = Calculations(params)
         plot = Plot()
-        state = state_from_file("input_initState.json", parameters)
+        state = state_from_file("input_initState.json", params)
 
-        for _ in range(parameters['frames_num'][parameters['simulation'] - 1]):
+        for _ in range(params['frames_num'][params['simulation'] - 1]):
 
-            filename = f"frames{parameters['simulation']}.txt"
+            filename = f"frames{params['simulation']}.txt"
             write_numbers(filename, state.positions)
 
             current_displacements = state.current_displacements()
@@ -73,7 +73,7 @@ def main():
                 current_time
             )
 
-            middle = int(parameters['osc_num'] / 2)
+            middle = int(params['osc_num'] / 2)
 
             plot.register_oscilator_state(
                 current_displacements[middle],
@@ -84,26 +84,26 @@ def main():
 
             state.update()
 
-            parameters['frame'] += 1
+            params['frame'] += 1
 
         total, kinetic, potential = calculations.calc_E()
 
-        if parameters['omega'] != None:
+        if params['omega'] != None:
             omega_approx = calculations.mean_frequency()
 
             if omega_approx == None:
-                print(f"T_avg = 0 for dt = {parameters['dt'][parameters['simulation'] - 1]}")
+                print(f"T_avg = 0 for dt = {params['dt'][params['simulation'] - 1]}")
 
             write_numbers("frequencies.txt", [
-                parameters['omega'],
+                params['omega'],
                 omega_approx,
                 Calculations.relative_error(
-                    parameters['omega'],
+                    params['omega'],
                     omega_approx
                 )
             ])
 
-        if parameters['osc_num'] > 100 and parameters['first_is_open'] and parameters['last_is_open']:
+        if params['osc_num'] > 100 and params['first_is_open'] and params['last_is_open']:
             wave_velocity_approx = calculations.calc_wave_vel()
             wave_velocity_analitic = calculations.calc_wave_vel_analitic()
 
@@ -122,13 +122,13 @@ def main():
 
         plot.energy("Energy.png")
 
-        parameters['simulation'] += 1
-        parameters['frame'] = 1
+        params['simulation'] += 1
+        params['frame'] = 1
 
-    if parameters['omega'] != None:
+    if params['omega'] != None:
         relative_errors = read_frequency_relative_errors("frequencies.txt")
 
-        plot.register_relative_errors(relative_errors, parameters['dt'])
+        plot.register_relative_errors(relative_errors, params['dt'])
 
         plot.relative_errors("freq_vs_dt.png")
 
