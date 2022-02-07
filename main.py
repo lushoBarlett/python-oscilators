@@ -3,21 +3,17 @@ import json
 from math import pi, sqrt
 import os
 import signal
-
 from matplotlib import pyplot
-
-from state import State
 
 def params_from_file(filename):
     with open(filename, "r") as params:
         unparsed_params = params.read()
         return json.loads(unparsed_params)
 
-def state_from_file(filename, params):
+def state_from_file(filename):
     with open(filename, "r") as state:
         unparsed_state = state.read()
-        parsed_state = json.loads(unparsed_state)
-        return State(parsed_state, params)
+        return json.loads(unparsed_state)
 
 def write_numbers(filename, numbers):
 
@@ -171,6 +167,45 @@ def plot_relative_errors(filename, errors, time_intervals):
     pyplot.savefig(filename)
     pyplot.close(fig)
 
+def left_force(params, state, i):
+    if i == 0:
+        return 0
+
+    if i == params['osc_num'] - 1 and not params['last_is_open']:
+        return 0
+
+    return -params['k'] * (state['displacements'][i] - state['displacements'][i - 1])
+
+def right_force(params, state, i):
+    if i == params['osc_num'] - 1:
+        return 0
+
+    if i == 0 and not params['first_is_open']:
+        return 0
+
+    return -params['k'] * (state['displacements'][i] - state['displacements'][i + 1])
+
+def update(params, state):
+    dt = params['dt'][params['simulation'] - 1]
+
+    for i in range(params['osc_num']):
+        net_force = left_force(params, state, i) + right_force(params, state, i)
+
+        state['accelerations'][i] = net_force / params['mass']
+
+        if params['frame'] == 1:
+            state['mid_velocities'][i] = state['v'][i] + state['accelerations'][i] * dt / 2
+        else:
+            state['mid_velocities'][i] += + state['accelerations'][i] * dt
+
+        state['v'][i] = state['mid_velocities'][i] - state['accelerations'][i] * dt / 2
+
+        state['x'][i] += state['mid_velocities'][i] * dt
+
+        state['displacements'][i] = state['x'][i] - i * params['l_rest']
+
+        state['elapsed_time'] += dt
+
 def main():
     params = params_from_file("input_parameters.json")
     params['simulation'] = 1
@@ -186,20 +221,32 @@ def main():
         middle_velocities = []
         middle_accelerations = []
 
-        state = state_from_file("input_initState.json", params)
+        state = state_from_file("input_initState.json")
+        state['displacements'] = []
+        state['mid_velocities'] = []
+        state['accelerations'] = []
+        state['elapsed_time'] = 0
+
+        for _ in range(params['osc_num']):
+            state['displacements'].append(0)
+            state['mid_velocities'].append(0)
+            state['accelerations'].append(0)
+
+        for i in range(params['osc_num']):
+            state['displacements'][i] = state['x'][i] - i * params['l_rest']
 
         for _ in range(params['frames_num'][params['simulation'] - 1]):
 
             filename = f"frames{params['simulation']}.txt"
-            write_numbers(filename, state.positions)
+            write_numbers(filename, state['x'])
 
-            current_displacements = deepcopy(state.displacements)
-            current_velocities = deepcopy(state.velocities)
-            current_accelerations = deepcopy(state.accelerations)
+            current_displacements = deepcopy(state['displacements'])
+            current_velocities = deepcopy(state['v'])
+            current_accelerations = deepcopy(state['accelerations'])
 
             displacements_list.append(current_displacements)
             velocities_list.append(current_velocities)
-            times.append(state.elapsed_time)
+            times.append(state['elapsed_time'])
 
             middle = int(params['osc_num'] / 2)
 
@@ -207,7 +254,7 @@ def main():
             middle_velocities.append(current_velocities[middle])
             middle_accelerations.append(current_accelerations[middle])
 
-            state.update()
+            update(params, state)
 
             params['frame'] += 1
 
