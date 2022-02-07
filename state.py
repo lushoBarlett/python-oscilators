@@ -27,63 +27,46 @@ class State:
             self.accelerations.append(0)
 
         for i in range(self.parameters.oscilator_amount):
-            self.displacements[i] = self.displacement(i)
-
-    def acceleration(self, i):
-        return self.net_force(i) / self.parameters.oscilator_mass
-
-    def net_force(self, i):
-        return self.left_force(i) + self.right_force(i)
+            self.displacements[i] = self.positions[i] - i * self.parameters.rest_length
 
     def left_force(self, i):
-        if self.is_first(i):
+        if i == 0:
             return 0
 
-        if self.is_last(i) and not self.parameters.last_open:
+        if i == self.parameters.oscilator_amount - 1 and not self.parameters.last_open:
             return 0
 
         k = self.parameters.spring_constant
         return -k * (self.displacements[i] - self.displacements[i - 1])
 
     def right_force(self, i):
-        if self.is_last(i):
+        if i == self.parameters.oscilator_amount - 1:
             return 0
 
-        if self.is_first(i) and not self.parameters.first_open:
+        if i == 0 and not self.parameters.first_open:
             return 0
 
         k = self.parameters.spring_constant
         return -k * (self.displacements[i] - self.displacements[i + 1])
 
-    def is_first(self, i):
-        return i == 0
-
-    def is_last(self, i):
-        return i == len(self.positions) - 1
-
-    def mid_velocity(self, i):
-        if self.parameters.frame() == 1:
-            return self.velocities[i] + self.accelerations[i] * self.parameters.dt() / 2
-
-        return self.mid_velocities[i] + self.accelerations[i] * self.parameters.dt()
-
-    def velocity(self, i):
-        return self.mid_velocities[i] - self.accelerations[i] * self.parameters.dt() / 2
-
-    def position(self, i):
-        return self.positions[i] + self.mid_velocities[i] * self.parameters.dt()
-
-    def displacement(self, i):
-        return self.positions[i] - i * self.parameters.rest_length
-
     def update(self):
+        dt = self.parameters.dt()
+
         for i in range(self.parameters.oscilator_amount):
-            self.accelerations[i] = self.acceleration(i)
-            self.mid_velocities[i] = self.mid_velocity(i)
-            self.velocities[i] = self.velocity(i)
-            self.positions[i] = self.position(i)
-            self.displacements[i] = self.displacement(i)
-            self.elapsed_time += self.parameters.dt()
+            self.accelerations[i] = (self.left_force(i) + self.right_force(i)) / self.parameters.oscilator_mass
+
+            if self.parameters.frame() == 1:
+                self.mid_velocities[i] = self.velocities[i] + self.accelerations[i] * dt / 2
+            else:
+                self.mid_velocities[i] += + self.accelerations[i] * dt
+
+            self.velocities[i] = self.mid_velocities[i] - self.accelerations[i] * dt / 2
+
+            self.positions[i] += self.mid_velocities[i] * self.parameters.dt()
+
+            self.displacements[i] = self.positions[i] - i * self.parameters.rest_length
+
+            self.elapsed_time += dt
 
     def current_displacements(self):
         return deepcopy(self.displacements)
