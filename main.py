@@ -3,7 +3,8 @@ from math import pi, sqrt
 import os
 import signal
 
-from plot import Plot
+from matplotlib import pyplot
+
 from state import State
 
 def params_from_file(filename):
@@ -141,6 +142,34 @@ def calc_wave_vel_analitic(params):
 def relative_error(real, approx):
     return abs(real - approx) / real
 
+def plot_kinematics(filename, displacements, velocities, accelerations, times):
+    fig, axes = pyplot.subplots(1, 3)
+
+    axes[0].plot(times, displacements)
+    axes[1].plot(times, velocities)
+    axes[2].plot(times, accelerations)
+
+    pyplot.savefig(filename)
+    pyplot.close(fig)
+
+def plot_energy(filename, total, kinetic, potential, times):
+    fig, axes = pyplot.subplots(1, 3)
+
+    axes[0].plot(times, total)
+    axes[1].plot(times, kinetic)
+    axes[2].plot(times, potential)
+
+    pyplot.savefig(filename)
+    pyplot.close(fig)
+
+def plot_relative_errors(filename, errors, time_intervals):
+    fig, axis = pyplot.subplots(1, 1)
+
+    axis.plot(time_intervals, errors)
+
+    pyplot.savefig(filename)
+    pyplot.close(fig)
+
 def main():
     params = params_from_file("input_parameters.json")
     params['simulation'] = 1
@@ -152,7 +181,10 @@ def main():
         velocities_list = []
         times = []
 
-        plot = Plot()
+        middle_displacements = []
+        middle_velocities = []
+        middle_accelerations = []
+
         state = state_from_file("input_initState.json", params)
 
         for _ in range(params['frames_num'][params['simulation'] - 1]):
@@ -171,12 +203,9 @@ def main():
 
             middle = int(params['osc_num'] / 2)
 
-            plot.register_oscilator_state(
-                current_displacements[middle],
-                current_velocities[middle],
-                current_accelerations[middle],
-                current_time
-            )
+            middle_displacements.append(current_displacements[middle])
+            middle_velocities.append(current_velocities[middle])
+            middle_accelerations.append(current_accelerations[middle])
 
             state.update()
 
@@ -206,21 +235,33 @@ def main():
                 relative_error(wave_velocity_analitic, wave_velocity_approx)
             ])
 
-        plot.kinematics("kinematics.png")
+        plot_kinematics(
+            "kinematics.png",
+            middle_displacements,
+            middle_velocities,
+            middle_accelerations,
+            times
+        )
 
-        plot.register_energy(total, kinetic, potential)
-
-        plot.energy("Energy.png")
+        plot_energy(
+            "Energy.png",
+            total,
+            kinetic,
+            potential,
+            times
+        )
 
         params['simulation'] += 1
         params['frame'] = 1
 
     if params['omega'] != None:
-        relative_errors = read_frequency_relative_errors("frequencies.txt")
+        errors = read_frequency_relative_errors("frequencies.txt")
 
-        plot.register_relative_errors(relative_errors, params['dt'])
-
-        plot.relative_errors("freq_vs_dt.png")
+        plot_relative_errors(
+            "freq_vs_dt.png",
+            errors,
+            params['dt']
+        )
 
 
 if __name__ == "__main__":
