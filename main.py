@@ -5,16 +5,35 @@ import os
 import signal
 from matplotlib import pyplot
 
+"""
+Reads simulations' parameters from a json file
+
+filename: name of the input file
+"""
 def params_from_file(filename):
     with open(filename, "r") as params:
         unparsed_params = params.read()
         return json.loads(unparsed_params)
 
+"""
+Reads oscilators' initial positions and velocities from a json file
+
+filename: name of the input file
+"""
 def state_from_file(filename):
     with open(filename, "r") as state:
         unparsed_state = state.read()
         return json.loads(unparsed_state)
 
+"""
+Writes a list of numbers to a file.
+If the file does not exist, it will be created.
+Alternatively, if it does exist, a new line with the numbers
+will be appended to it. The numbers will be separated with a tab character
+
+filename: name of the ouput file
+numbers: list of numbers to write
+"""
 def write_numbers(filename, numbers):
 
     def map_str(sequence):
@@ -31,7 +50,12 @@ def write_numbers(filename, numbers):
 
         frames.write("\t".join(map_str(numbers)))
 
+"""
+Reads all the relative frequency errors from a file
+and returns them as a list
 
+filename: name of the input file
+"""
 def read_frequency_relative_errors(filename):
 
     relative_errors = []
@@ -45,6 +69,13 @@ def read_frequency_relative_errors(filename):
 
     return relative_errors
 
+"""
+Calculates a list of the kinetic energies of the whole system, one for each frame of time
+
+params: dictionary with the simulations' parameters
+velocities_list: list of the velocities of all particles, one for each frame of time
+one for each frame of time
+"""
 def calc_kinetic(params, velocities_list):
     kinetic = []
 
@@ -61,6 +92,12 @@ def calc_kinetic(params, velocities_list):
     
     return kinetic
 
+"""
+Calculates a list of the potential energies of the whole system, one for each frame of time
+
+params: dictionary with the simulations' parameters
+displacements_list: list of the displacements from the equilibrium point of all particles,
+"""
 def calc_potential(params, displacements_list):
     potential = []
 
@@ -77,8 +114,17 @@ def calc_potential(params, displacements_list):
     
     return potential
 
-def calc_E(params, displacements_list, velocities):
-    kinetic = calc_kinetic(params, velocities)
+"""
+Calculates a list of the mechanic, kinetic and potential energies, one for each frame of time,
+and returns them as a tuple
+
+params: dictionary with the simulations' parameters
+displacements_list: list of the displacements from the equilibrium point of all particles,
+velocities_list: list of the velocities of all particles, one for each frame of time
+one for each frame of time
+"""
+def calc_E(params, displacements_list, velocities_list):
+    kinetic = calc_kinetic(params, velocities_list)
     potential = calc_potential(params, displacements_list)
 
     total = []
@@ -87,6 +133,14 @@ def calc_E(params, displacements_list, velocities):
 
     return (total, kinetic, potential)
 
+"""
+Calculates the mean of the frequencies
+
+params: dictionary with the simulations' parameters
+displacements_list: list of the displacements from the equilibrium point of all particles,
+one for each frame of time
+times: list of each frame of time
+"""
 def mean_frequency(params, displacements_list, times):
     middle_oscilator_displacements = []
 
@@ -115,6 +169,14 @@ def mean_frequency(params, displacements_list, times):
 
     return 2 * pi / mean_period
 
+"""
+Calculates the velocity of travel of the wave in the simulation
+using an approximation
+
+params: dictionary with the simulations' parameters
+velocities_list: list of the velocities of all particles, one for each frame of time
+times: list of each frame of time
+"""
 def calc_wave_vel(params, velocities_list, times):
     last_oscilator_velocities = []
 
@@ -123,7 +185,7 @@ def calc_wave_vel(params, velocities_list, times):
         last_oscilator_velocities.append(last_oscilator_velocity)
 
     time_of_movement = 0
-    for t, v in zip(times, velocities):
+    for t, v in zip(times, last_oscilator_velocities):
         time_of_movement = t
         if v > 0:
             break
@@ -133,12 +195,34 @@ def calc_wave_vel(params, velocities_list, times):
 
     return length_of_rest / time_of_movement
 
+"""
+Calculates the velocity of travel of the wave in the simulation
+using the analitic formula
+
+params: dictionary with the simulations' parameters
+"""
 def calc_wave_vel_analitic(params):
     return sqrt(params['k'] / params['mass']) * params['l_rest']
 
+"""
+Calculates the relative error of a real and meassured quantity
+
+real: real quantity of a value
+approx: meassured quantity of that same value
+"""
 def relative_error(real, approx):
     return abs(real - approx) / real
 
+"""
+Plots the displacements from the equilibrium point, velocities, and accelerations
+of a single particle in the system as a function of time, for a single simulation
+
+filename: name of the output file
+displacements: list of oscilator displacement for each frame of time
+velocities: list of oscilator velocity for each frame of time
+accelerations: list of oscilator acceleration for each frame of time
+times: list of each frame of time
+"""
 def plot_kinematics(filename, displacements, velocities, accelerations, times):
     fig, axes = pyplot.subplots(1, 3)
 
@@ -149,6 +233,16 @@ def plot_kinematics(filename, displacements, velocities, accelerations, times):
     pyplot.savefig(filename)
     pyplot.close(fig)
 
+"""
+Plots the total, kinetic, and potenial energy as a function of time
+for a single simulation
+
+filename: name of the output file
+total: list of mechanic energy of the whole system for each frame of time
+kinetic: list of kinetic energy of the whole system for each frame of time
+potential: list of potential energy of the whole system for each frame of time
+times: list of each frame of time
+"""
 def plot_energy(filename, total, kinetic, potential, times):
     fig, axes = pyplot.subplots(1, 3)
 
@@ -159,6 +253,16 @@ def plot_energy(filename, total, kinetic, potential, times):
     pyplot.savefig(filename)
     pyplot.close(fig)
 
+"""
+Plots the relative errors of the various angular frequencies
+calculated across all the simulations, as a function of the time interval
+used in each simulation
+
+filename: name of the output file
+errors: list of all relative errors
+time_intervals: corresponding list of the time intervals
+used for each frequency approximation
+"""
 def plot_relative_errors(filename, errors, time_intervals):
     fig, axis = pyplot.subplots(1, 1)
 
@@ -167,6 +271,14 @@ def plot_relative_errors(filename, errors, time_intervals):
     pyplot.savefig(filename)
     pyplot.close(fig)
 
+"""
+Calculates the force applied to a single oscilator
+due to its left spring
+
+params: dictionary with the simulations' parameters
+state: dictionary with the current state of all oscilators
+i: index of the oscilator to be used
+"""
 def left_force(params, state, i):
     if i == 0:
         return 0
@@ -176,6 +288,14 @@ def left_force(params, state, i):
 
     return -params['k'] * (state['displacements'][i] - state['displacements'][i - 1])
 
+"""
+Calculates the force applied to a single oscilator
+due to its right spring
+
+params: dictionary with the simulations' parameters
+state: dictionary with the current state of all oscilators
+i: index of the oscilator to be used
+"""
 def right_force(params, state, i):
     if i == params['osc_num'] - 1:
         return 0
@@ -185,6 +305,13 @@ def right_force(params, state, i):
 
     return -params['k'] * (state['displacements'][i] - state['displacements'][i + 1])
 
+"""
+Updates the oscilators' state (positions, velocities, accelerations, etc)
+using the Leapfrog Method in one small time interval, specified in the parameters.
+
+params: dictionary with the simulations' parameters
+state: dictionary with the current state of all oscilators
+"""
 def update(params, state):
     dt = params['dt'][params['simulation'] - 1]
 
@@ -206,7 +333,14 @@ def update(params, state):
 
         state['elapsed_time'] += dt
 
-def main():
+"""
+Entry point of the program
+
+Reads information from files and runs all the simulations,
+each with its own amount of frames and time interval,
+then writes the results to files and images
+"""
+if __name__ == "__main__":
     params = params_from_file("input_parameters.json")
     params['simulation'] = 1
     params['frame'] = 1
@@ -309,7 +443,3 @@ def main():
             errors,
             params['dt']
         )
-
-
-if __name__ == "__main__":
-    main()
