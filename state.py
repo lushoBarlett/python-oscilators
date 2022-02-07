@@ -14,41 +14,41 @@ class State:
 
         self.elapsed_time = 0
 
-        for _ in range(self.parameters.oscilator_amount):
+        for _ in range(self.parameters['osc_num']):
             self.displacements.append(0)
             self.mid_velocities.append(0)
             self.accelerations.append(0)
 
-        for i in range(self.parameters.oscilator_amount):
-            self.displacements[i] = self.positions[i] - i * self.parameters.rest_length
+        for i in range(self.parameters['osc_num']):
+            self.displacements[i] = self.positions[i] - i * self.parameters['l_rest']
 
     def left_force(self, i):
         if i == 0:
             return 0
 
-        if i == self.parameters.oscilator_amount - 1 and not self.parameters.last_open:
+        if i == self.parameters['osc_num'] - 1 and not self.parameters['last_is_open']:
             return 0
 
-        k = self.parameters.spring_constant
+        k = self.parameters['k']
         return -k * (self.displacements[i] - self.displacements[i - 1])
 
     def right_force(self, i):
-        if i == self.parameters.oscilator_amount - 1:
+        if i == self.parameters['osc_num'] - 1:
             return 0
 
-        if i == 0 and not self.parameters.first_open:
+        if i == 0 and not self.parameters['first_is_open']:
             return 0
 
-        k = self.parameters.spring_constant
+        k = self.parameters['k']
         return -k * (self.displacements[i] - self.displacements[i + 1])
 
     def update(self):
-        dt = self.parameters.dts[self.parameters.current_simulation - 1]
+        dt = self.parameters['dt'][self.parameters['simulation'] - 1]
 
-        for i in range(self.parameters.oscilator_amount):
-            self.accelerations[i] = (self.left_force(i) + self.right_force(i)) / self.parameters.oscilator_mass
+        for i in range(self.parameters['osc_num']):
+            self.accelerations[i] = (self.left_force(i) + self.right_force(i)) / self.parameters['mass']
 
-            if self.parameters.current_frame == 1:
+            if self.parameters['frame'] == 1:
                 self.mid_velocities[i] = self.velocities[i] + self.accelerations[i] * dt / 2
             else:
                 self.mid_velocities[i] += + self.accelerations[i] * dt
@@ -57,7 +57,7 @@ class State:
 
             self.positions[i] += self.mid_velocities[i] * dt
 
-            self.displacements[i] = self.positions[i] - i * self.parameters.rest_length
+            self.displacements[i] = self.positions[i] - i * self.parameters['l_rest']
 
             self.elapsed_time += dt
 

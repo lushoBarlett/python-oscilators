@@ -23,10 +23,10 @@ class Calculations:
 
             kinetic.append(0)
 
-            for i in range(self.parameters.oscilator_amount):
+            for i in range(self.parameters['osc_num']):
                 kinetic[t] += velocities[i] ** 2
 
-            kinetic[t] *= self.parameters.oscilator_mass / 2
+            kinetic[t] *= self.parameters['mass'] / 2
         
         return kinetic
 
@@ -37,10 +37,10 @@ class Calculations:
 
             potential.append(0)
 
-            for i in range(self.parameters.oscilator_amount - 1):
+            for i in range(self.parameters['osc_num'] - 1):
                 potential[t] += (displacements[i + 1] - displacements[i]) ** 2
 
-            potential[t] *= self.parameters.spring_constant / 2
+            potential[t] *= self.parameters['k'] / 2
         
         return potential
 
@@ -58,7 +58,7 @@ class Calculations:
         middle_oscilator_displacements = []
 
         for displacements in self.dx:
-            middle = int(self.parameters.oscilator_amount / 2)
+            middle = int(self.parameters['osc_num'] / 2)
             middle_oscilator_displacements.append(displacements[middle])
 
         indices, _ = signal.find_peaks(middle_oscilator_displacements)
@@ -95,15 +95,15 @@ class Calculations:
             if v > 0:
                 break
 
-        spring_amount = self.parameters.oscilator_amount - 1
-        length_of_rest = self.parameters.rest_length * spring_amount
+        spring_amount = self.parameters['osc_num'] - 1
+        length_of_rest = self.parameters['l_rest'] * spring_amount
 
         return length_of_rest / time_of_movement
 
     def calc_wave_vel_analitic(self):
-        k = self.parameters.spring_constant
-        m = self.parameters.oscilator_mass
-        l = self.parameters.rest_length
+        k = self.parameters['k']
+        m = self.parameters['mass']
+        l = self.parameters['l_rest']
         return sqrt(k / m) * l
 
     def relative_error(real, approx):
