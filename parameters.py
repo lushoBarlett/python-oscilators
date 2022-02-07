@@ -1,13 +1,4 @@
-import json
-
-
 class Parameters:
-
-    def from_file(filename):
-        with open(filename, "r") as parameters:
-            unparsed_parameters = parameters.read()
-            parsed_parameters = json.loads(unparsed_parameters)
-            return Parameters(parsed_parameters)
 
     def __init__(self, params):
         self.current_simulation = 1

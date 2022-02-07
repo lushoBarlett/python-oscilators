@@ -1,3 +1,4 @@
+import json
 import os
 
 from calculations import Calculations
@@ -5,6 +6,17 @@ from parameters import Parameters
 from plot import Plot
 from state import State
 
+def parameters_from_file(filename):
+    with open(filename, "r") as parameters:
+        unparsed_parameters = parameters.read()
+        parsed_parameters = json.loads(unparsed_parameters)
+        return Parameters(parsed_parameters)
+
+def state_from_file(filename, parameters):
+    with open(filename, "r") as state:
+        unparsed_state = state.read()
+        parsed_state = json.loads(unparsed_state)
+        return State(parsed_state, parameters)
 
 def write_numbers(filename, numbers):
 
@@ -37,13 +49,13 @@ def read_frequency_relative_errors(filename):
     return relative_errors
 
 def main():
-    parameters = Parameters.from_file("input_parameters.json")
+    parameters = parameters_from_file("input_parameters.json")
 
     for _ in range(parameters.simulations()):
 
         calculations = Calculations(parameters)
         plot = Plot()
-        state = State.from_file("input_initState.json", parameters)
+        state = state_from_file("input_initState.json", parameters)
 
         for _ in range(parameters.simulation_frames()):
 

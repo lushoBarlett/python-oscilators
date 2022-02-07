@@ -1,14 +1,7 @@
 from copy import deepcopy
-import json
 
 
 class State:
-
-    def from_file(filename, parameters):
-        with open(filename, "r") as state:
-            unparsed_state = state.read()
-            parsed_state = json.loads(unparsed_state)
-            return State(parsed_state, parameters)
 
     def __init__(self, state, parameters):
         self.positions = state["x"]
