@@ -2,12 +2,12 @@ import json
 
 
 class Parameters:
+
     def from_file(filename):
         with open(filename, "r") as parameters:
             unparsed_parameters = parameters.read()
             parsed_parameters = json.loads(unparsed_parameters)
             return Parameters(parsed_parameters)
-
 
     def __init__(self, params):
         self.current_simulation = 1
@@ -50,3 +50,6 @@ class Parameters:
 
     def next_frame(self):
         self.current_frame += 1
+
+    def middle_index(self):
+        return int(self.oscilator_amount / 2)

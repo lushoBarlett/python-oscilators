@@ -3,12 +3,12 @@ import json
 
 
 class State:
+
     def from_file(filename, parameters):
         with open(filename, "r") as state:
             unparsed_state = state.read()
             parsed_state = json.loads(unparsed_state)
             return State(parsed_state, parameters)
-
 
     def __init__(self, state, parameters):
         self.positions = state["x"]
@@ -90,6 +90,9 @@ class State:
 
     def current_velocities(self):
         return deepcopy(self.velocities)
+
+    def current_accelerations(self):
+        return deepcopy(self.accelerations)
 
     def current_time(self):
         return self.elapsed_time
